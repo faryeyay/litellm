@@ -1,0 +1,23 @@
+[project]
+name = "litellm-proxy"
+version = "0.1.0"
+description = ""
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]",
+    "litellm",
+    "boto3",
+    "pydantic",
+    "pydantic-settings",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
