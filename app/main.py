@@ -11,7 +11,7 @@ def create_app() -> FastAPI:
     Returns:
         A fully wired ``FastAPI`` instance ready to serve requests.
     """
-    application = FastAPI(title="LiteLLM Bedrock Proxy")
+    application = FastAPI(title="LiteLLM Multi-Platform Proxy")
     application.include_router(chat_router)
 
     @application.get("/health")
