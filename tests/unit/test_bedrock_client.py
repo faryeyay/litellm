@@ -1,3 +1,4 @@
+import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -95,12 +96,10 @@ class TestBedrockLLMService:
     def test_configure_env_sets_aws_region(self, monkeypatch, settings: Settings):
         monkeypatch.delenv("AWS_REGION_NAME", raising=False)
         BedrockLLMService(settings)
-        import os
         assert os.environ.get("AWS_REGION_NAME") == "us-east-1"
 
     def test_configure_env_sets_aws_profile_when_provided(self, monkeypatch):
         settings = Settings(aws_profile="my-profile", llm_platform=LLMPlatform.BEDROCK)
         monkeypatch.delenv("AWS_PROFILE", raising=False)
         BedrockLLMService(settings)
-        import os
         assert os.environ.get("AWS_PROFILE") == "my-profile"

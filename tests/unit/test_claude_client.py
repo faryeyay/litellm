@@ -1,4 +1,3 @@
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -42,16 +41,24 @@ def _mock_litellm_response() -> MagicMock:
 
 
 class TestClaudeLLMService:
-    def test_init_sets_anthropic_api_key_env(self, monkeypatch, settings: Settings):
-        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-        ClaudeLLMService(settings)
-        assert os.environ.get("ANTHROPIC_API_KEY") == "test-api-key"
+    @pytest.mark.asyncio
+    async def test_complete_passes_api_key_to_litellm(
+        self, service: ClaudeLLMService, chat_request: ChatRequest
+    ):
+        mock_response = _mock_litellm_response()
+        with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+            await service.complete(chat_request)
+        assert mock_call.call_args.kwargs["api_key"] == "test-api-key"
 
-    def test_init_does_not_set_api_key_when_empty(self, monkeypatch):
-        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    @pytest.mark.asyncio
+    async def test_complete_passes_none_api_key_when_empty(self):
         settings = Settings(llm_platform=LLMPlatform.CLAUDE, anthropic_api_key="")
-        ClaudeLLMService(settings)
-        assert os.environ.get("ANTHROPIC_API_KEY") is None
+        service = ClaudeLLMService(settings)
+        request = ChatRequest(messages=[Message(role="user", content="Hi")])
+        mock_response = _mock_litellm_response()
+        with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+            await service.complete(request)
+        assert mock_call.call_args.kwargs["api_key"] is None
 
     @pytest.mark.asyncio
     async def test_complete_uses_default_model_when_request_has_none(

@@ -20,6 +20,10 @@ def create_llm_service(settings: Settings) -> LLMService:
         ValueError: If ``settings.llm_platform`` is not a recognised platform.
     """
     if settings.llm_platform == LLMPlatform.CLAUDE:
+        if not settings.anthropic_api_key.get_secret_value():
+            raise ValueError(
+                "ANTHROPIC_API_KEY must be set when LLM_PLATFORM=claude"
+            )
         return ClaudeLLMService(settings)
     if settings.llm_platform == LLMPlatform.LOCAL:
         return LocalLLMService(settings)

@@ -1,5 +1,6 @@
 from enum import Enum
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -36,7 +37,7 @@ class Settings(BaseSettings):
     bedrock_default_model: str = "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0"
 
     # Anthropic Claude (direct)
-    anthropic_api_key: str = ""
+    anthropic_api_key: SecretStr = SecretStr("")
     claude_default_model: str = "claude-3-5-sonnet-20241022"
 
     # Local (Ollama)

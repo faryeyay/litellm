@@ -1,7 +1,5 @@
 """Anthropic Claude direct API adapter via litellm."""
 
-import os
-
 import litellm
 
 from app.config import Settings
@@ -21,8 +19,6 @@ class ClaudeLLMService(LiteLLMBaseService):
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        if settings.anthropic_api_key:
-            os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key
 
     async def complete(self, request: ChatRequest) -> ChatResponse:
         """Forward a chat request to Anthropic Claude and return a domain response.
@@ -34,12 +30,14 @@ class ClaudeLLMService(LiteLLMBaseService):
             A ``ChatResponse`` mapped from the litellm response.
         """
         model = request.model or self._settings.claude_default_model
+        api_key = self._settings.anthropic_api_key.get_secret_value() or None
 
         response = await litellm.acompletion(
             model=model,
             messages=[m.model_dump() for m in request.messages],
             temperature=request.temperature,
             max_tokens=request.max_tokens,
+            api_key=api_key,
             stream=False,
         )
 

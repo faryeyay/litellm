@@ -17,7 +17,7 @@ async def chat_completions(
     """Create a chat completion.
 
     Accepts an OpenAI-style request body and proxies it to the
-    configured AWS Bedrock model via litellm.
+    configured LLM platform via litellm.
 
     Args:
         request: Validated chat completion request.

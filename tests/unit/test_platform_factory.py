@@ -14,9 +14,14 @@ class TestCreateLLMService:
         assert isinstance(service, BedrockLLMService)
 
     def test_returns_claude_service_for_claude_platform(self):
-        settings = Settings(llm_platform=LLMPlatform.CLAUDE)
+        settings = Settings(llm_platform=LLMPlatform.CLAUDE, anthropic_api_key="sk-test")
         service = create_llm_service(settings)
         assert isinstance(service, ClaudeLLMService)
+
+    def test_raises_when_claude_platform_has_no_api_key(self):
+        settings = Settings(llm_platform=LLMPlatform.CLAUDE, anthropic_api_key="")
+        with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
+            create_llm_service(settings)
 
     def test_returns_local_service_for_local_platform(self):
         settings = Settings(llm_platform=LLMPlatform.LOCAL)

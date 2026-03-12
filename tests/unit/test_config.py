@@ -40,7 +40,7 @@ class TestSettings:
     def test_anthropic_api_key_from_env(self, monkeypatch):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test123")
         settings = Settings()
-        assert settings.anthropic_api_key == "sk-ant-test123"
+        assert settings.anthropic_api_key.get_secret_value() == "sk-ant-test123"
 
     def test_ollama_base_url_from_env(self, monkeypatch):
         monkeypatch.setenv("OLLAMA_BASE_URL", "http://my-ollama:11434")

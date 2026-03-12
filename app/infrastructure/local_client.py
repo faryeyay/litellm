@@ -30,7 +30,8 @@ class LocalLLMService(LiteLLMBaseService):
         Returns:
             A ``ChatResponse`` mapped from the litellm response.
         """
-        model = request.model or self._settings.local_default_model
+        raw_model = request.model or self._settings.local_default_model
+        model = raw_model if raw_model.startswith("ollama/") else f"ollama/{raw_model}"
 
         response = await litellm.acompletion(
             model=model,

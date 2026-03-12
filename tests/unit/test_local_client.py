@@ -64,6 +64,19 @@ class TestLocalLLMService:
         assert mock_call.call_args.kwargs["model"] == "ollama/gemma:2b"
 
     @pytest.mark.asyncio
+    async def test_complete_prepends_ollama_prefix_when_missing(
+        self, service: LocalLLMService
+    ):
+        request = ChatRequest(
+            messages=[Message(role="user", content="Hi")],
+            model="gemma:2b",
+        )
+        mock_response = _mock_litellm_response()
+        with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+            await service.complete(request)
+        assert mock_call.call_args.kwargs["model"] == "ollama/gemma:2b"
+
+    @pytest.mark.asyncio
     async def test_complete_passes_ollama_api_base(
         self, service: LocalLLMService, chat_request: ChatRequest
     ):

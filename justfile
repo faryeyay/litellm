@@ -33,6 +33,9 @@ test-integration:
 run-local:
     LLM_PLATFORM=local {{python}} -m fastapi dev app/main.py
 
-# Build the local-model Docker image (embeds qwen2.5:0.5b by default)
+# Build the local-model Docker image (embeds qwen2.5:0.5b by default).
+# Colons and dots in MODEL_NAME are replaced with dashes in the image tag.
 docker-build-local model="qwen2.5:0.5b":
-    docker build -f Dockerfile.local --build-arg MODEL_NAME={{model}} -t litellm-local:{{model}} .
+    #!/usr/bin/env bash
+    MODEL_TAG=$(echo "{{model}}" | tr ':.' '--')
+    docker build -f Dockerfile.local --build-arg MODEL_NAME="{{model}}" -t "litellm-local:${MODEL_TAG}" .

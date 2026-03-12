@@ -142,7 +142,7 @@ jobs:
           context: .
           file: Dockerfile.local
           push: true
-          build-args: MODEL_NAME=${{ matrix.model_name }}
+          build-args: MODEL_NAME="${{ matrix.model_name }}"
           tags: ${{ steps.meta-local.outputs.tags }}
           labels: ${{ steps.meta-local.outputs.labels }}
           cache-from: type=gha,scope=local-${{ steps.tag.outputs.model_tag }}
