@@ -1,3 +1,5 @@
+"""Anthropic Claude direct API adapter via litellm."""
+
 import os
 
 import litellm
@@ -7,27 +9,23 @@ from app.domain.models import ChatRequest, ChatResponse
 from app.infrastructure.base import LiteLLMBaseService
 
 
-class BedrockLLMService(LiteLLMBaseService):
-    """LLMService adapter that routes requests to AWS Bedrock via litellm.
+class ClaudeLLMService(LiteLLMBaseService):
+    """LLMService adapter that routes requests to Anthropic Claude via litellm.
+
+    Uses the Anthropic API directly rather than going through AWS Bedrock.
 
     Args:
-        settings: Application settings carrying AWS credentials and the
-            default Bedrock model identifier.
+        settings: Application settings carrying the Anthropic API key and
+            the default Claude model identifier.
     """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self._configure_env()
-
-    def _configure_env(self) -> None:
-        """Push AWS credentials into the process environment for boto3."""
-        if self._settings.aws_profile:
-            os.environ["AWS_PROFILE"] = self._settings.aws_profile
-        if self._settings.aws_region:
-            os.environ["AWS_REGION_NAME"] = self._settings.aws_region
+        if settings.anthropic_api_key:
+            os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key
 
     async def complete(self, request: ChatRequest) -> ChatResponse:
-        """Forward a chat request to Bedrock and return a domain response.
+        """Forward a chat request to Anthropic Claude and return a domain response.
 
         Args:
             request: The incoming chat completion request.
@@ -35,7 +33,7 @@ class BedrockLLMService(LiteLLMBaseService):
         Returns:
             A ``ChatResponse`` mapped from the litellm response.
         """
-        model = request.model or self._settings.bedrock_default_model
+        model = request.model or self._settings.claude_default_model
 
         response = await litellm.acompletion(
             model=model,

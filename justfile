@@ -28,3 +28,11 @@ test-unit:
 # Run integration tests only
 test-integration:
     {{python}} -m pytest tests/integration/ -v
+
+# Run the dev server using a local Ollama model (requires Ollama running)
+run-local:
+    LLM_PLATFORM=local {{python}} -m fastapi dev app/main.py
+
+# Build the local-model Docker image (embeds qwen2.5:0.5b by default)
+docker-build-local model="qwen2.5:0.5b":
+    docker build -f Dockerfile.local --build-arg MODEL_NAME={{model}} -t litellm-local:{{model}} .

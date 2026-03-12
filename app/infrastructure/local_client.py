@@ -1,4 +1,4 @@
-import os
+"""Local model (Ollama) adapter via litellm."""
 
 import litellm
 
@@ -7,27 +7,22 @@ from app.domain.models import ChatRequest, ChatResponse
 from app.infrastructure.base import LiteLLMBaseService
 
 
-class BedrockLLMService(LiteLLMBaseService):
-    """LLMService adapter that routes requests to AWS Bedrock via litellm.
+class LocalLLMService(LiteLLMBaseService):
+    """LLMService adapter that routes requests to a local Ollama server via litellm.
+
+    Suitable for development and testing with small models such as
+    ``qwen2.5:0.5b`` or ``gemma:2b`` that can be embedded in the Docker image.
 
     Args:
-        settings: Application settings carrying AWS credentials and the
-            default Bedrock model identifier.
+        settings: Application settings carrying the Ollama base URL and
+            the default local model identifier.
     """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self._configure_env()
-
-    def _configure_env(self) -> None:
-        """Push AWS credentials into the process environment for boto3."""
-        if self._settings.aws_profile:
-            os.environ["AWS_PROFILE"] = self._settings.aws_profile
-        if self._settings.aws_region:
-            os.environ["AWS_REGION_NAME"] = self._settings.aws_region
 
     async def complete(self, request: ChatRequest) -> ChatResponse:
-        """Forward a chat request to Bedrock and return a domain response.
+        """Forward a chat request to the local Ollama server and return a domain response.
 
         Args:
             request: The incoming chat completion request.
@@ -35,13 +30,14 @@ class BedrockLLMService(LiteLLMBaseService):
         Returns:
             A ``ChatResponse`` mapped from the litellm response.
         """
-        model = request.model or self._settings.bedrock_default_model
+        model = request.model or self._settings.local_default_model
 
         response = await litellm.acompletion(
             model=model,
             messages=[m.model_dump() for m in request.messages],
             temperature=request.temperature,
             max_tokens=request.max_tokens,
+            api_base=self._settings.ollama_base_url,
             stream=False,
         )
 

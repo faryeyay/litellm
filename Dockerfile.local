@@ -1,0 +1,50 @@
+# Stage 1: Pull the model using the official Ollama image.
+# The model weights land in /root/.ollama and are copied to the final image.
+FROM ollama/ollama:latest AS model-stage
+
+ARG MODEL_NAME=qwen2.5:0.5b
+
+# Start the Ollama daemon, wait for it to be ready, pull the model, then stop.
+RUN /bin/ollama serve & \
+    OLLAMA_PID=$! && \
+    echo "Waiting for Ollama daemon..." && \
+    until /bin/ollama list > /dev/null 2>&1; do sleep 1; done && \
+    /bin/ollama pull "${MODEL_NAME}" && \
+    kill "${OLLAMA_PID}"
+
+# Stage 2: Install Python dependencies.
+FROM python:3.12-slim AS py-builder
+
+WORKDIR /app
+COPY pyproject.toml .
+RUN pip install --no-cache-dir .
+
+# Stage 3: Final runtime image.
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Copy the Ollama binary from the official image.
+COPY --from=model-stage /usr/bin/ollama /usr/local/bin/ollama
+
+# Copy the pre-downloaded model weights.
+COPY --from=model-stage /root/.ollama /root/.ollama
+
+# Copy installed Python packages and entry-point scripts.
+COPY --from=py-builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=py-builder /usr/local/bin /usr/local/bin
+
+COPY app/ app/
+COPY docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+
+# Re-declare so it is available as an ENV in the final stage.
+ARG MODEL_NAME=qwen2.5:0.5b
+
+ENV LLM_PLATFORM=local
+ENV LOCAL_DEFAULT_MODEL=ollama/${MODEL_NAME}
+ENV OLLAMA_BASE_URL=http://localhost:11434
+
+EXPOSE 8000
+
+ENTRYPOINT ["./docker-entrypoint.sh"]

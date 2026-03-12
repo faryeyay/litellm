@@ -7,14 +7,15 @@ once and reused across requests.
 from functools import lru_cache
 
 from app.application.chat_service import ChatService
-from app.config import Settings, get_settings
-from app.infrastructure.bedrock_client import BedrockLLMService
+from app.config import get_settings
+from app.domain.services import LLMService
+from app.infrastructure.platform_factory import create_llm_service
 
 
 @lru_cache
-def _llm_service() -> BedrockLLMService:
-    """Create or return the cached ``BedrockLLMService`` singleton."""
-    return BedrockLLMService(get_settings())
+def _llm_service() -> LLMService:
+    """Create or return the cached ``LLMService`` singleton for the configured platform."""
+    return create_llm_service(get_settings())
 
 
 @lru_cache
